@@ -1,0 +1,25 @@
+{
+  "name": "was_framework",
+  "version": "0.0.0",
+  "description": "Micro framework used in the WAS course @UVersailles",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/defeo/was_framework.git"
+  },
+  "keywords": [
+    "framework"
+  ],
+  "author": "Luca De Feo <luca.de-feo@uvsq.fr> (http://www.prism.uvsq.fr/~dfl)",
+  "license": "BSD",
+  "readmeFilename": "README.md",
+  "gitHead": "bde51eca9cf579856182b61e344c5200c842477e",
+  "dependencies": {
+    "connect": "*",
+    "cookies": "*",
+    "mustache": "*"
+  }
+}
