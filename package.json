@@ -1,6 +1,6 @@
 {
   "name": "was_framework",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Micro framework used in the WAS course @UVersailles",
   "main": "index.js",
   "scripts": {
@@ -16,10 +16,9 @@
   "author": "Luca De Feo <luca.de-feo@uvsq.fr> (http://www.prism.uvsq.fr/~dfl)",
   "license": "BSD",
   "readmeFilename": "README.md",
-  "gitHead": "bde51eca9cf579856182b61e344c5200c842477e",
   "dependencies": {
-    "connect": "*",
-    "cookies": "*",
-    "mustache": "*"
+    "express": "3.x",
+    "consolidate": ">=0.8.0",
+    "hogan.js": "2.x"
   }
 }
