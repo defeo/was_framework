@@ -18,6 +18,7 @@ exports.connect = express;
 
 /* Some default configuration */
 function Options(opt) {
+    // TODO: fix require.main when in repl
     this.static_dir = opt.static_dir || path.resolve(require.main.filename, '../static');
     this.static_mount = opt.static_mount || '/static';
     this.template_dir = opt.template_dir || path.resolve(require.main.filename, '../templates');
@@ -54,7 +55,7 @@ function createServer(options) {
     // Custom middleware
     app.use(exports.logger(opt.separator))
 	.use(set_cookie)
-	.use(exports.multi_render())
+	.use(exports.multi_render(app))
 	.use(exports.fun_router(app));
 
     app.start = startServer;
@@ -81,7 +82,7 @@ function startServer(port, db, next) {
 
     if (!(next instanceof Function)) {
 	next = function(err) {
-	    if (err) console.log(err);
+	    if (err) console.error(err);
 	}
     }
 
@@ -220,32 +221,45 @@ exports.fun_router = function(app) {
 /*
   Adds a facility for rendering multiple views at once (concatenated).
 */
-exports.multi_render = function() {
-    return function(req, res, next) {
-	res.multiRender = function(views, locals, callback) {
-	    if (util.isArray(views)) {
-		if (typeof locals == 'function') {
-		    callback = locals;
-		    locals = {};
-		}
-		callback = callback || function(err, results) {
-		    if (err) { next(err); }
-		    else { res.send(results); }
-		};
-		var count = 0;
-		async.map(views,
-			  function(v, cb) { res.render(v, locals, cb); }, 
-			  function(err, results) {
-			      try {
-				  callback(err, results.join('')); 
-			      } catch (err) {
-				  next(err);
-			      }
-			  });
-	    } else {
-		return res.render(views, locals, callback);
+exports.multi_render = function(app) {
+    app.multiRender = function (views, options, fn) {
+	if (util.isArray(views)) {
+	    if ('function' == typeof options) {
+		fn = options, options = {};
 	    }
+	    async.map(views,
+		      function(v, cb) { app.render(v, options, cb); }, 
+		      function(err, results) { fn(err, results.join('')); });
+	} else {
+	    return app.render(views, options, fn);
+	}
+    };
+
+    return function(req, res, next) {
+	res.multiRender = function(views, options, fn) {
+	    options = options || {};
+	    if ('function' == typeof options) {
+		fn = options, options = {};
+	    }
+	    if (fn) {
+		// Hack to reduce problems with consolidate.js
+		// in case fn raises an error.
+		var _fn = fn;
+		fn = function(err, results) {
+		    try {
+			_fn(err, results);
+		    } catch (err) {
+			req.next(err);
+		    }
+		}
+	    } else {
+		fn = function(err, results) {
+		    if (err) return req.next(err);
+		    res.send(results);
+		}
+	    }
+	    res.app.multiRender(views, options, fn);
 	};
 	next();
-    }
+    };
 }
