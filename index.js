@@ -1,7 +1,9 @@
 /* Dependencies */
+var path = require('path');
+var util = require('util');
+var async = require('async');
 var express = require('express');
 var cons = require('consolidate');
-var path = require('path');
 var mysql = require('mysql');
 var sqlite = require('node-sqlite-purejs');
 var SqlString = require('mysql/lib/protocol/SqlString');
@@ -52,6 +54,7 @@ function createServer(options) {
     // Custom middleware
     app.use(exports.logger(opt.separator))
 	.use(set_cookie)
+	.use(exports.multi_render())
 	.use(exports.fun_router(app));
 
     app.start = startServer;
@@ -89,7 +92,7 @@ function startServer(port, db, next) {
 	    next(err);
 	} else {
 	    // this is executed only with the node-sqlite-purejs driver
-	    if (typeof db == 'Sql') {
+	    if (db && db instanceof sqlite) {
 		app.db = db;
 		// Use the query escaping facilities of mysql
 		app.db.escape = SqlString.escape;
@@ -98,7 +101,7 @@ function startServer(port, db, next) {
 		// Wrap exec with a signature similar to mysql's
 		// prepared queries
 		app.db.query = function(sql, values, callback) {
-		    if (values instanceof Function) {
+		    if (typeof values == 'function') {
 			callback = values;
 		    } else {
 			sql = app.db.format(sql, values);
@@ -214,3 +217,35 @@ exports.fun_router = function(app) {
     }
 }
 
+/*
+  Adds a facility for rendering multiple views at once (concatenated).
+*/
+exports.multi_render = function() {
+    return function(req, res, next) {
+	res.multiRender = function(views, locals, callback) {
+	    if (util.isArray(views)) {
+		if (typeof locals == 'function') {
+		    callback = locals;
+		    locals = {};
+		}
+		callback = callback || function(err, results) {
+		    if (err) { next(err); }
+		    else { res.send(results); }
+		};
+		var count = 0;
+		async.map(views,
+			  function(v, cb) { res.render(v, locals, cb); }, 
+			  function(err, results) {
+			      try {
+				  callback(err, results.join('')); 
+			      } catch (err) {
+				  next(err);
+			      }
+			  });
+	    } else {
+		return res.render(views, locals, callback);
+	    }
+	};
+	next();
+    }
+}
