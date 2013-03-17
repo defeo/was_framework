@@ -1,20 +1,26 @@
 {
   "name": "was_framework",
-  "version": "0.0.1",
+  "version": "0.9.0",
   "description": "Micro framework used in the WAS course @UVersailles",
-  "main": "index.js",
+  "main": "lib/framework",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepublish": "/bin/sh scripts/SqlString.sh"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/defeo/was_framework.git"
   },
   "keywords": [
-    "framework"
+    "framework",
+    "express",
+    "database",
+    "sqlite",
+    "sqlite3",
+    "mysql"
   ],
   "author": "Luca De Feo <luca.de-feo@uvsq.fr> (http://www.prism.uvsq.fr/~dfl)",
-  "license": "BSD",
+  "license": "MIT",
   "readmeFilename": "README.md",
   "dependencies": {
     "async": "0.x",

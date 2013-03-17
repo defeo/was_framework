@@ -1,0 +1,13 @@
+--- lib/SqlString.js	2013-03-17 22:50:55.377470849 +0100
++++ lib/SqlString-patched.js	2013-03-17 22:54:52.561460877 +0100
+@@ -37,6 +37,10 @@
+     }
+   }
+ 
++  return SqlString.anyToString(val);
++};
++
++SqlString.anyToString = function(val) {
+   val = val.replace(/[\0\n\r\b\t\\\'\"\x1a]/g, function(s) {
+     switch(s) {
+       case "\0": return "\\0";
