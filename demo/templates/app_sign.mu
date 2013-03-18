@@ -1,4 +1,5 @@
 <div id='main'>
+  <div id='message'><p>{{message}}</p></div>
   <form id='sign-form' method='post'>
     email: <input id='email' type='email' name='email' value='{{email}}' />
     password: <input id='pwd' type='password' name='pwd' />

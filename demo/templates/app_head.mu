@@ -7,7 +7,7 @@
   {{#styles}}
     <link rel='stylesheet' src='/static/{{src}}' />
   {{/styles}}
-  <script src='/static/jquery.min.js'></script>
+  <script src='http://code.jquery.com/jquery-1.9.1.min.js'></script>
   {{#scripts}}
     <script src='/static/{{src}}'></script>
   {{/scripts}}
@@ -15,10 +15,10 @@
 <body>
   <div id='header'>
     <a href='/'><h1>My App</h1></a>
-    <a href='/'><img id='logo' src='/static/logo.jpg' alt='My App Logo' /></a>
+    <a href='/'><img width='245' height='66' id='logo' src='/static/logo.png' alt='Node.js Logo' /></a>
   </div>
-  {{#loggedin}}
-    <div id='user'><p><a href='/user?id={{session.id}}'>{{session.id}}</a>, 
+  {{#session.loggedin}}
+    <div id='user'><p><a href='/user?id={{id}}'>{{id}}</a>, 
 	<a href='/logout'>logout</a></p>
     </div>
-  {{/loggedin}}
+  {{/session.loggedin}}

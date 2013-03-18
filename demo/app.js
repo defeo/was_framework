@@ -1,9 +1,10 @@
 var fmwk = require('was_framework');
+var argv = require('attrs.argv');
 var app_db = require('./app_db');
 
 var app = fmwk({
     default_route: '/index',
-    db: app_db.config
+    db: argv.mysql ? app_db.mysql_config : app_db.sqlite_config
 });
     
 
@@ -30,12 +31,13 @@ app.f_routes.index = function(req, res) {
 	res.redirect(home_page);
     } else if (req.method == 'POST') {
 	// If the user has sent a login form, try loggin in
-	app_db.login(req, function(err, success) {
+	app_db.login(req, function(err, result) {
 	    if (err) {
 		console.error(err);
 		res.send(500, 'Internal Server Error');
-	    } else if (success) {
-		// todo: populate session
+	    } else if (result) {
+		// populate session
+		req.session.loggedin = result[0];
 		// If successfully logged in, redirect
 		res.redirect(home_page);
 	    } else {
@@ -43,7 +45,8 @@ app.f_routes.index = function(req, res) {
 		res.multiRender(template, {
 		    title: title, 
 		    session: req.session,
-		    id: req.body.id 
+		    id: req.body.id,
+		    message: 'Wrong username or password.'
 		});
 	    }
 	});
@@ -84,7 +87,7 @@ app.f_routes.user = protect(function(req, res) {
 	} else {
 	    // todo: same user
 	    res.multiRender(['app_head.mu',
-		    'app_users.mu',
+		    'app_user.mu',
 		    'app_foot.mu'], 
 		   {
 		       title: 'My cool app - ' + req.session.name,
@@ -105,12 +108,13 @@ app.f_routes.sign = function(req, res) {
 	// If loggedin, redirect to home page
 	res.redirect(home_page);
     } else if (req.method == 'POST') {
-	app_db.sign(req, function(err, success) {
+	app_db.sign(req, function(err, result, message) {
 	    if (err) {
 		console.error(err);
 		res.send(500, 'Internal Server Error');
-	    } else if (success) {
-		// todo: populate session
+	    } else if (result) {
+		// populate session
+		req.session.loggedin = result;
 		// If signing was successful, redirect
 		res.redirect(home_page);
 	    } else {
@@ -119,7 +123,8 @@ app.f_routes.sign = function(req, res) {
 			   {
 			       title: title,
 			       session: req.session,
-			       email: req.body.email
+			       email: req.body.email,
+			       message: message
 			   });
 	    }
 	});
@@ -135,15 +140,15 @@ app.f_routes.sign = function(req, res) {
 
 // logout
 app.f_routes.logout = protect(function(req, res) {
-    req.session.loggedin = false;
-    req.session.id = undefined;
+    req.session.loggedin = null;
+    req.session.destroy();
     res.redirect('/');
 });
 
-app.start(8080, null, function(err) {
+app.start(argv.port || 8080, null, function(err) {
     if (err)
 	console.error(err);
-    else if (process.argv.length > 2 && process.argv[2] == '--create-db') {
+    else if (argv['create-db']) {
 	app_db.create(app);
     }
 });

@@ -1,0 +1,12 @@
+{
+  "name": "was_framework",
+  "version": "0.1.0",
+  "description": "Micro framework used in the WAS course @UVersailles",
+  "main": "app.js",
+  "author": "Luca De Feo <luca.de-feo@uvsq.fr> (http://www.prism.uvsq.fr/~dfl)",
+  "license": "MIT",
+  "dependencies": {
+    "was_framework": "",
+    "attrs.argv": ""
+  }
+}

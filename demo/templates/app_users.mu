@@ -7,14 +7,12 @@
       <th>Avatar</th>
     </tr>
     {{#users}}
-    <a href='/user?id={{id}}'>
       <tr>
-	<td>{{id}}</td>
-	<td>{{name}}</td>
-	<td>{{email}}</td>
-	<td><img src='{{avatar}}' alt='{{id}} avatar'/></td>
+	<td><a href='/user?id={{id}}'>{{id}}</a></td>
+	<td><a href='/user?id={{id}}'>{{name}}</a></td>
+	<td><a href='/user?id={{id}}'>{{email}}</a></td>
+	<td><a href='/user?id={{id}}'><img src='{{avatar}}' alt='{{id}} avatar'/></a></td>
       </tr>
-    </a>
     {{/users}}
   </table>
 </div>
