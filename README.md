@@ -15,8 +15,8 @@ Example
 var fmwk = require('was_framework');
 
 var opts = {
-  default_handler: handler;
-}
+  default_handler: handler
+};
 
 // Create and configure application
 var app = fmwk(opts);
