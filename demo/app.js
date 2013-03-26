@@ -2,9 +2,13 @@ var fmwk = require('was_framework');
 var argv = require('attrs.argv');
 var app_db = require('./app_db');
 
+// get configuration file path
+var conffile = argv.f || 'conf.json';
+conffile = conffile[0] == '/' ? conffile : './' + conffile;
+
 var app = fmwk({
     default_route: '/index',
-    db: require(argv.f || 'conf.json').db
+    db: require(conffile).db
 });
     
 
