@@ -1,20 +1,3 @@
-// Default configuration for database
-// (usually this goes in a separate file)
-exports.sqlite_config = {
-    type: 'sqlite',
-    file: 'app.db',
-    create_query: 'create table users (id text not null primary key, pwd text not null, email text not null unique)'
-};
-// edit this with your MySql database config
-exports.mysql_config = {
-    type: 'mysql',
-    host: 'localhost',
-    user: 'root',
-    password: 'root',
-    database: 'root',
-    create_query: 'create table users (id varchar(255) primary key, pwd varchar(255) not null, email varchar(255) not null unique)'
-};
-
 // Get list of users
 exports.get_user_list = function(req, cb) {
     req.app.db.query('select * from users', cb);
@@ -23,7 +6,9 @@ exports.get_user_list = function(req, cb) {
 // Get single user
 exports.get_user = function(req, cb) {
     req.app.db.query('select * from users where id=?',
-		     req.query.id, cb);
+		     req.query.id, function(err, result) {
+			 cb(err, result.length ? result[0] : null);
+		     });
 };
 
 // Check that a user id and password correspond
@@ -48,8 +33,9 @@ exports.sign = function(req, cb) {
 	    req.body.email
 	], function(err, result) {
 	    if (err) {
-		if (err.code == 'ER_DUP_ENTRY' ||         // MySQL
-		    /^SQLite exception: 19/.test(err)) {  // SQLite
+		if (err &&
+		    (err.code == 'ER_DUP_ENTRY' ||          // MySQL
+		     /^SQLite exception: 19/.test(err))) {  // SQLite
 		    // Login already exists, callback with no error
 		    cb(null, null, 'Email already has an account.');
 		} else {
@@ -70,12 +56,40 @@ exports.sign = function(req, cb) {
     }
 };
 
+// update field
+exports.update = function(req, cb) {
+    if (['id', 'email', 'name'].indexOf(req.query.column) < 0) {
+	cb(null, false, "Unknown column");
+    } else if (!req.query.value) {
+	cb(null, false, "Emtpy value");
+    } else {
+	req.app.db.query('update users set ??=? where id=?', 
+			 [req.query.column, req.query.value, 
+			  req.session.loggedin.id],
+			 function(err) {
+			     if (err &&
+				 (err.code == 'ER_DUP_ENTRY' ||        //MySQL
+				  /^SQLite exception: 19/.test(err))) {//SQLite
+				 cb(null, false, 'Duplicate entry');
+			     } else if (err) {
+				 cb(err);
+			     } else {
+				 cb(null, true);
+			     }
+			 });
+    }
+};
+
 
 // This function is not for responding HTTP requests.
 // It creates the table
 exports.create = function(app) {
+    var create_query = app.get('db').type == 'mysql' ?
+	'create table users (id varchar(255) primary key, pwd varchar(255) not null, email varchar(255) not null unique, name varchar(255))' :
+	'create table users (id text not null primary key, pwd text not null, email text not null unique, name text)';
+
     app.db.query('drop table users', function(err) {
-	app.db.query(app.get('db').create_query, function(err) {
+	app.db.query(create_query, function(err) {
 	    if (err)
 		console.error(err);
 	    else

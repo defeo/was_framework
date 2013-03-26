@@ -4,7 +4,9 @@ var app_db = require('./app_db');
 
 var app = fmwk({
     default_route: '/index',
-    db: argv.mysql ? app_db.mysql_config : app_db.sqlite_config
+    db: argv.mysql ? 
+	require('./mysql-conf.json').db :
+	require('./sqlite-conf.json').db
 });
     
 
@@ -85,19 +87,36 @@ app.f_routes.user = protect(function(req, res) {
 	    console.error(err);
 	    res.send(500, 'Internal Server Error');
 	} else {
-	    // todo: same user
+	    var scripts = (result && result.id == req.session.loggedin.id) ?
+		['update_user.js'] : [];
 	    res.multiRender(['app_head.mu',
 		    'app_user.mu',
 		    'app_foot.mu'], 
 		   {
-		       title: 'My cool app - ' + req.session.name,
+		       title: 'My cool app - ' + result.name,
 		       session: req.session,
-		       user: result
+		       user: result,
+		       scripts: scripts
 		   });
 	}
     });
 });
 
+
+// update user fields
+app.f_routes.update = protect(function(req, res) {
+    app_db.update(req, function(err, ok, message) {
+	if (err) {
+	    console.log(err)
+	    res.send(500, 'Internal Server Error');
+	} else {
+	    res.json({
+		ok: ok,
+		message: message
+	    });
+	}
+    });
+});
 
 // sign in
 app.f_routes.sign = function(req, res) {

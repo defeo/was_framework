@@ -1,0 +1,119 @@
+body {
+    background-color: gray;
+    color: white;
+    padding:0;
+    margin:0;
+}
+
+a:visited {
+    color: DarkGreen;
+}
+a:link {
+    color: LimeGreen;
+}
+a:active {
+    color: Lime;
+}
+
+#header h1{
+    display: inline-block;
+    margin: 0 0 0 30%;
+    vertical-align: top;
+}
+
+#header h1 a {
+    color: LimeGreen;
+}
+
+#logo {
+    padding: 10px;
+    border-bottom: solid thin LimeGreen;
+    border-right: solid thin LimeGreen;
+}
+
+#user {
+    margin: 20px;
+    text-align: right;
+}
+
+#main {
+    width: 80%;
+    margin: 100px auto;
+}
+
+#footer {
+    border-top: solid thin LimeGreen;
+    text-align: center;
+}
+
+#footer h1 {
+    font-size: small;
+}
+
+#message {
+    height: 30px;
+    color: red;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+table#users td {
+    border: solid thin white;
+}
+
+table#users a {
+    color: LimeGreen;
+}
+
+table td, table th {
+    padding: 3px;
+}
+
+
+.userpage table {
+    width: 100%;
+}
+
+.userpage input {
+    width: 100%;
+    color: inherit;
+    background-color: inherit;
+    font-family: inherit;
+    border: none;
+}
+
+.userpage #name {
+    display: block;
+    font-size: 140%;
+    font-weight: bold;
+    margin: 10px 0;
+}
+
+.userpage a #email {
+    text-decoration: underline;
+}
+
+.userpage #email, input#id {
+    min-width: 20em;
+}
+
+.userpage table td+td+td, .userpage #name-container td+td {
+    width: 20px;
+    font-weight: bold;
+    font-family: sans-serif;
+}
+
+#avatar {
+}
+
+.editable:hover:valid {
+    outline: dashed thin white;
+}
+.editable:hover:invalid {
+    outline: dashed thin red;
+}
+.editing {
+    outline: solid thin white !important;
+}

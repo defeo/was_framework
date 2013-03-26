@@ -1,0 +1,6 @@
+{
+  "db": {
+    "type": "sqlite",
+    "file": "app.db"
+  }
+}
