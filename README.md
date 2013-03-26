@@ -1,5 +1,5 @@
-was_framework
-=============
+# was_framework
+
 
 Express-based framework used in the WAS course @UVersailles
 
@@ -7,11 +7,11 @@ Course page at http://swift.prism.uvsq.fr/
 
 Install
 
-```npm install was_framework```
+    npm install was_framework
 
 Example
 
-~~~~ {.javascript}
+```javascript
 var fmwk = require('was_framework');
 
 var opts = {
@@ -27,17 +27,78 @@ function handler(req, res) {
 
 // Start application on port 12345
 app.start(12345);
-~~~~
+```
 
 ## Recognized options
 
+* `static_dir` directory containing static content (must be an absolute path). Default: `/path/to/script/static/`.
+* `static_mount` URL where static content is served. Default: `/static`.
+* `template_dir` directory containing templates (must be an absolute path). Default: `/path/to/script/templates/`.
+* `default_handler` handler to be executed when no other handler is found. Default: `was_framework.not_found_handler`.
+* `default_route` redirect all requests for '/' to this URL. Default `null`.
+* `secret` secret used for cookies. Default: `WAS`.
+* `port` port to listen to. Default `8080`.
+* `db` object containing database configuration. See [below](#databases). Default `null`.
+
+Example showing use of all options:
+
+```javascript
+var fmwk = require('was_framework');
+
+var opts = {
+  static_dir         : __dirname + 'client',
+  static_mount       : '/public',
+  template_dir       : __dirname + 'views',
+  default_handler    : handler,
+  default_route      : '/index',
+  secret             : 'my_secret',
+  port               : 80
+  db                 : {
+                          type: 'sqlite',
+                          file: 'data.db'
+  }
+};
+
+var app = fmwk(opts);
+
+app.f_routes.index = function(req, res) {
+  res.send('This is the default page');
+}
+
+app.f_routes.view = function(req, res) {
+  // my_client.js is in ./public
+  res.render('a_view.mu', { 
+                            title: 'This is a template',
+                            script: '<script src="/public/my_client.js"></script>'
+                          });
+}
+
+function handler(req, res) {
+  res.send(404, 'Not found');
+}
+
+app.start();
+```
+
+All the options are added to the application's settings, so that you may get the using the `.get`:
+
+```javascript
+var dir = app.get('static_dir');
+```
 
 ## Starting the server
 
-The `.start` method accepts as third argument a callback to be
-executed after the server has successfully started.
+The `.start` method is used to start the application. It takes three arguments:
 
-~~~~ {.javascript}
+```javascript
+function start(port, db, callback)
+```
+
+* `port` is the port number to listen on.
+* `db` is an object as described in the [Databases section](#databases). If both this object and the `db` option is used, this one gets the precedence.
+* `callback` is a callback to be called after the server has started. It receives an optional `error` argument if the server fails to start.
+
+```javascript
 var fmwk = require('was_framework');
 
 var opts = {
@@ -47,21 +108,20 @@ var opts = {
   }
 }
 
-var app = fmwk(opts);
+var app = fmwk();
 
-app.start(null, null, function(err) {
+app.start(80, opts.db, function(err) {
   console.log('Server started');
 });
-~~~~
-
+```
 
 ## Routing
 
-`was_framwork` comes with a *function name based router* to help you map
-URLs to JavaScript functions with the least effort. Handlers are
+`was_framwork` comes with a *function name based router*, mapping
+URLs to functions with the least effort. Handlers are
 added to the object `app.f_routes`.
 
-~~~~ {.javascript}
+```javascript
 var fmwk = require('was_framework');
 
 var opts = {
@@ -90,59 +150,93 @@ app.f_routes.foo = {
   }
 };
 
-app.start(12345);
-~~~~
+app.start();
+```
 
 Besides the function name based router, `was_framework` supports also
-the default router of `express` for finer control over
-URLs and HTTP methods. Read the documentation of
-`express` for more information.
+the default router of [express](http://expressjs.com) for finer control over
+URLs and HTTP methods. Read the [documentation](http://expressjs.com/api.html#app.VERB) of
+[express](http://expressjs.com) for more information.
+
+
+## Sending content
+
+`was_framework` supports the usual `.write` and `.end` methods. More high-level functions to send content 
+to the user are available via [express](http://expressjs.com/api.html) functions.
+
+The `.send` method sends arbitrary content and sets the appropriate HTTP headers. To set the content type,
+use the `.type` method.
+
+```javascript
+app.f_routes.a_route = function(req, res) {
+  res.type('html');
+  res.send('<h1>Hello world!</h1>');
+}
+```
+
+The `.json` method compiles JavaScript objects to JSON and sends them with the appropraite HTTP headers.
+Content type is automatically set
+
+```javascript
+app.f_routes.xhr = function(req, res) {
+  var data = {
+    name     : 'foo',
+    surname  : 'bar',
+    adress   : 'some avenue'
+  };
+  res.json(data);
+}
+```
+
+The `.download` method sends a file for download. The mime type is automaticalli guessed
+
+```javascript
+app.f_routes.download = function(req, res) {
+  res.download('/path/to/file.png').
+}
+```
 
 
 ## Hogan.js templates
 
-`was_framework` comes with built-in support for Mustache templates using `hogan.js`.
-Mustache templates must be contained in a directory called
+`was_framework` comes with built-in support for [Mustache](http://mustache.github.com/mustache.5.html)
+templates using `hogan.js`.
+Unless configured otherwise (see [options](#recognized-options)), Mustache templates must be contained in a directory called
 `templates`, and must have filename
 ending in `.mu` or `.mustache`. Templates are compiled and sent
-to the client at once using the `.render` method. 
+to the client at once using the `.render`.
 
-~~~~ {.javascript}
+```javascript
 app.f_routes.home = function(req, res) {
   // Compile Mustache template and send to the user
   res.render('about.mu', { title: 'My cool web app' });
 }
-~~~~
+```
 
-A feature unique to `was_framework` is the method **`.multiRender`**,
+A feature unique to `was_framework` is the method `.multiRender`,
 allowing to compile and send multiple templates. It makes a simpler alternative to partials. Here’s an example using
 three templates, the compiled HTML is concatenated and sent to the
 user.
 
-~~~~ {.javascript}
+```javascript
 app.f_routes.home = function(req, res) {
   res.multiRender(['head.mu', 'body.mu', 'foot.mu'], { title: 'My cool web app' });
 }
-~~~~
+```
 
 
-## Static files
+## Static file server
 
-`was_framework` comes with built-in support for static files. If you
-create a directory `static` inside your working directory, any file
-contained in it will be available at the URL `/static/filename`.
+`was_framework` comes with built-in support for static files. 
+Create a directory named `static` inside your working directory: any file
+contained in it will be available at the URL `/static/filename`. These paths can be configured, see [options](#recognized-options).
 
 
 ## Redirections and other HTTP codes
 
-HTTP status code 302 is used for redirection. When the server sends
-a code 302 to the client, it also specifies a `Location:` response
-header, containing a URL to redirect to. When the client receives a
-code 302, it generates a new GET request for the URL specified
-by the server. `was_framework` has a facility for redirecting provided
-by the `.redirect` method.
+URL redirections are performed by the `.redirect` method.
 
-~~~~ {.javascript}
+```javascript
 app.f_routes.rel_redirect = function(req, res) {
   res.redirect('a/relative/url/');
 };
@@ -154,28 +248,49 @@ app.f_routes.abs_redirect = function(req, res) {
 app.f_routes.full_redirect = function(req, res) {
   res.redirect('http://some.other.site/some/page');
 }
-~~~~
-
+```
 
 Other HTTP codes can be sent to the client, along with an arbitrary
-message, using the `.send` method. For example, 500 is the code for
-Internal Server Error.
+message, using the `.send` method.
 
-~~~~ {.javascript}
+```javascript
 app.f_routes.error = function(req, res) {
   res.send(500, '<h1>An unexpected error occured.</h1>');
 }
-~~~~
+```
+
+## Cookies
+
+Received cookies are parsed into the `req.cookies` object
+
+```javascript
+app.f_routes.read_cookies = function(req, res) {
+  console.log(req.cookies.sessid);
+}
+```
+
+To set cookies, use the `res.setCookie` method, to clear the, use `res.clearCookie`
+
+```javascript
+app.f_routes.set_cookie = function(req, res) {
+  res.setCookie('sessid', '1');
+}
+
+app.f_routes.clear_cookie = function(req, res) {
+  res.clearCookie('sessid');
+}
+```
 
 
 ## Databases
 
-`was_framework` has builtin support for MySql and SQLite, based on the modules `mysql` and `node-sqlite-purejs`. The
+`was_framework` has builtin support for MySql and SQLite, based on the modules [mysql](https://npmjs.org/package/mysql)
+and [node-sqlite-purejs](https://npmjs.org/package/node-sqlite-purejs). The
 connection to the database is opened automatically before the server is
 started. Use an SQLite database like this (if `filename.db` does not
 exist, it is created automatically):
 
-~~~~ {.javascript}
+```javascript
 var fmwk = require('was_framework');
 
 var opts = {
@@ -188,11 +303,11 @@ var opts = {
 var app = fmwk(opts);
 
 app.start();   // by default, listen on port 8080
-~~~~
+```
 
 Use a MySql database like this:
 
-~~~~ {.javascript}
+```javascript
 var fmwk = require('was_framework');
 
 var opts = {
@@ -208,18 +323,19 @@ var opts = {
 var app = fmwk(opts);
 
 app.start();   // by default, listen on port 8080
-~~~~
+```
 
 Are also recognized all the options accepted by the modules
-`node-sqlite-purejs` and `mysql`.
+[mysql](https://npmjs.org/package/mysql)
+and [node-sqlite-purejs](https://npmjs.org/package/node-sqlite-purejs).
 
 After a successfull connection, an `app.db` object is created.
 
 Independently of the driver, `was_framework` tries to provide an API as
-consistent as possible with that of the `mysql` module. To
+consistent as possible with that of the [mysql](https://npmjs.org/package/mysql) module. To
 send an SQL query to the database, use the `.query` method of `db`.
 
-~~~~ {.javascript}
+```javascript
 app.f_routes.create_table = function(req, res) {
   req.app.db.query('CREATE TABLE test (a TEXT, b TEXT)', function(err) {
     if (err) console.log(err);
@@ -239,7 +355,7 @@ app.f_routes.select = function(req, res) {
                      }
   });
 }
-~~~~
+```
 
 Prepared queries help you avoid SQL injections. If you want to do the
 escaping manually, you can use the methods `app.db.escape` for
