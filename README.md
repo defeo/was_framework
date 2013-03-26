@@ -330,10 +330,37 @@ Are also recognized all the options accepted by the modules
 and [node-sqlite-purejs](https://npmjs.org/package/node-sqlite-purejs).
 
 After a successfull connection, an `app.db` object is created.
-
 Independently of the driver, `was_framework` tries to provide an API as
 consistent as possible with that of the [mysql](https://npmjs.org/package/mysql) module. To
-send an SQL query to the database, use the `.query` method of `db`.
+send an SQL query to the database, use the `.query` method of `app.db`, with the following signature
+
+```
+query(sql[, values[, callback]])
+```
+
+Where `sql` is a string containing an SQL statement, values is an optional array of values to be replaced inside `sql`,
+and `callback` is a function with signature `callback(err, results)` to be called upon completion or error.
+
+The `.query` method supports automatic SQL esacping to help prevent SQL injections. A `?` or `??` is replaced 
+by the corresponding value in `values`. `?` is for escaping SQL values, while `??` is for escaping SQL identifierss.
+In this example
+
+```javascript
+app.db.query('SELECT ?? FROM table WHERE name=? AND town=?', ['adress', 'WAS', 'Versailles']);
+```
+
+produces the SQL statement
+
+```sql
+SELECT `adress` FROM table WHERE name='WAS' AND town='Versailles'
+```
+
+Always prefer automatic escaping. If you really want to do the
+escaping manually, you can use the methods `app.db.escape` for
+values `app.db.escapeId` for identifiers. An alternative is to use
+`app.db.format(sql, values)`, which returns a string with substitutions performed as in the `.query` method.
+
+Here is a longer example.
 
 ```javascript
 app.f_routes.create_table = function(req, res) {
@@ -356,8 +383,3 @@ app.f_routes.select = function(req, res) {
   });
 }
 ```
-
-Prepared queries help you avoid SQL injections. If you want to do the
-escaping manually, you can use the methods `app.db.escape` for
-values `app.db.escapeId` for column names.
-
