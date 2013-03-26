@@ -4,9 +4,7 @@ var app_db = require('./app_db');
 
 var app = fmwk({
     default_route: '/index',
-    db: argv.mysql ? 
-	require('./mysql-conf.json').db :
-	require('./sqlite-conf.json').db
+    db: require(argv.f || 'conf.json').db
 });
     
 
@@ -44,6 +42,7 @@ app.f_routes.index = function(req, res) {
 		res.redirect(home_page);
 	    } else {
 		// Show again login page
+		res.type('html');
 		res.multiRender(template, {
 		    title: title, 
 		    session: req.session,
@@ -54,6 +53,7 @@ app.f_routes.index = function(req, res) {
 	});
     } else {
 	// Show login page
+	res.type('html');
 	res.multiRender(template, { 
 	    title: title,
 	    session: req.session
@@ -68,6 +68,7 @@ app.f_routes.users = protect(function(req, res) {
 	    console.error(err);
 	    res.send(500, 'Internal Server Error');
 	} else {
+	    res.type('html');
 	    res.multiRender(['app_head.mu',
 		    'app_users.mu',
 		    'app_foot.mu'], 
@@ -89,11 +90,12 @@ app.f_routes.user = protect(function(req, res) {
 	} else {
 	    var scripts = (result && result.id == req.session.loggedin.id) ?
 		['update_user.js'] : [];
+	    res.type('html');
 	    res.multiRender(['app_head.mu',
 		    'app_user.mu',
 		    'app_foot.mu'], 
 		   {
-		       title: 'My cool app - ' + result.name,
+		       title: 'My cool app - View user',
 		       session: req.session,
 		       user: result,
 		       scripts: scripts
@@ -104,19 +106,33 @@ app.f_routes.user = protect(function(req, res) {
 
 
 // update user fields
-app.f_routes.update = protect(function(req, res) {
-    app_db.update(req, function(err, ok, message) {
-	if (err) {
-	    console.log(err)
-	    res.send(500, 'Internal Server Error');
-	} else {
-	    res.json({
-		ok: ok,
-		message: message
-	    });
-	}
-    });
-});
+app.f_routes.update = function(req, res) {
+    if (req.session.loggedin) {
+	app_db.update(req, function(err, result, message) {
+	    if (err) {
+		console.log(err)
+		res.send(500, 'Internal Server Error');
+	    } else {
+		if (result) {
+		    // update session variables
+		    for (k in result)
+			req.session.loggedin[k] = result[k];
+		    res.json({ ok: true });
+		} else {
+		    res.json({
+			ok: false,
+			message: message
+		    });
+		}
+	    }
+	});
+    } else {
+	res.json({
+	    ok: false,
+	    message: 'Not logged in'
+	});
+    }
+};
 
 // sign in
 app.f_routes.sign = function(req, res) {
@@ -138,6 +154,7 @@ app.f_routes.sign = function(req, res) {
 		res.redirect(home_page);
 	    } else {
 		// Else, present again sign in form
+		res.type('html');
 		res.multiRender(template,
 			   {
 			       title: title,
@@ -149,6 +166,7 @@ app.f_routes.sign = function(req, res) {
 	});
     } else {
 	// Present sign in form
+	res.type('html');
 	res.multiRender(template,
 		   {
 		       title: title,

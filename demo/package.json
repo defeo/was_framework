@@ -1,7 +1,7 @@
 {
-  "name": "was_framework",
-  "version": "0.1.0",
-  "description": "Micro framework used in the WAS course @UVersailles",
+  "name": "was_framework_demo",
+  "version": "0.2.0",
+  "description": "demo application for was_framework",
   "main": "app.js",
   "author": "Luca De Feo <luca.de-feo@uvsq.fr> (http://www.prism.uvsq.fr/~dfl)",
   "license": "MIT",

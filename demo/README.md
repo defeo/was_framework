@@ -1,5 +1,4 @@
-Demo application
-================
+#Demo application
 
 This is a demo application for was_framework. To try it, get the latest copy from source tree:
 
@@ -19,12 +18,17 @@ And start the application
 
 The application accepts the following command-line options:
 
-  - port: port number to listen on
-  - create-database: (re)create empty table for the application
-  - mysql: use mysql instead of sqlite
+  - `--port`: port number to listen on
+  - `--create-database`: (re)create empty table for the application
+  - `--f`: configuration file for database
 
 
 ### Database configuration
 
-The database can be configured via a `.json` file. Two example files are already 
-included: `sqlite-conf.json` and `mysql-conf.json`. Edit them to suit your needs.
+The database can be configured via the `conf.json` file. The default
+file provided in the git repo uses SQLite. `mysql-conf.example.json`
+is an example file for MySQL.
+
+Any setting accepted by
+[node-sqlite-purejs](https://npmjs.org/package/node-sqlite-purejs) or
+[mysql](https://npmjs.org/package/mysql) can be used in this file.

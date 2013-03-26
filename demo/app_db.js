@@ -70,11 +70,13 @@ exports.update = function(req, cb) {
 			     if (err &&
 				 (err.code == 'ER_DUP_ENTRY' ||        //MySQL
 				  /^SQLite exception: 19/.test(err))) {//SQLite
-				 cb(null, false, 'Duplicate entry');
+				     cb(null, null, 'Duplicate entry');
 			     } else if (err) {
 				 cb(err);
 			     } else {
-				 cb(null, true);
+				 var result = {};
+				 result[req.query.column] = req.query.value;
+				 cb(null, result);
 			     }
 			 });
     }
