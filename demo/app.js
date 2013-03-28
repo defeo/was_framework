@@ -3,12 +3,12 @@ var argv = require('attrs.argv');
 var app_db = require('./app_db');
 
 // get configuration file path
-var conffile = argv.f || 'conf.json';
-conffile = conffile[0] == '/' ? conffile : './' + conffile;
+var conffile = argv.f || 'conf';
+var conf = require(conffile[0] == '/' ? conffile : './' + conffile);
 
 var app = fmwk({
     default_route: '/index',
-    db: require(conffile).db
+    db: conf.db
 });
     
 
@@ -186,11 +186,17 @@ app.f_routes.logout = protect(function(req, res) {
     res.redirect('/');
 });
 
-app.start(argv.port || 8080, null, function(err) {
+app.start(argv.port || conf.port || 8080, null, function(err) {
+    var create = !argv['no-create-db'] &&
+	(argv['create-db'] || conf['create-db'] || 
+	 argv['recreate-db'] || conf['recreate-db']);
+    var drop = create && 
+	(argv['recreate-db'] || conf['recreate-db']);
+    
     if (err)
 	console.error(err);
-    else if (argv['create-db']) {
-	app_db.create(app);
+    else if (create) {
+	app_db.create(app, drop);
     }
 });
 

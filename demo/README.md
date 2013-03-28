@@ -11,24 +11,36 @@ Then install all the dependencies
 
 And start the application
 
-    node . --port=8080 --create-database
+    node app.js --port=8080 --create-database
+
+or, equivalently,
+
+    npm start
 
 
-### List of options
+## Configuration options
 
 The application accepts the following command-line options:
 
-  - `--port`: port number to listen on
-  - `--create-database`: (re)create empty table for the application
-  - `--f`: configuration file for database
+  - `--port`: port number to listen on (default 8080).
+  - `--(re)create-db`: (re)create empty table for the application.
+  - `--no-create-db`: undoes the effects of the previous option.
+  - `--f`: configuration file for database (default `conf.json`).
 
+Command-line options take precedence over options in the configuration file.
 
-### Database configuration
+The configuration file must be a file executable by node (e.g. json or
+javascript), exporting a configuration object. The configuration
+object may contain the following fields:
 
-The database can be configured via the `conf.json` file. The default
-file provided in the git repo uses SQLite. `mysql-conf.example.json`
-is an example file for MySQL.
+  - `port`: port number
+  - `(re)create-database`: (re)create empty table
+  - `db`: object for configuring the database connection
 
-Any setting accepted by
-[node-sqlite-purejs](https://npmjs.org/package/node-sqlite-purejs) or
-[mysql](https://npmjs.org/package/mysql) can be used in this file.
+The `db` object must follow the same format described at
+<https://github.com/defeo/was_framework/blob/master/README.md#databases>
+
+The git repo contains three demo configuration files. The default
+`conf.json` uses SQLite, `mysql-conf.example.json` is an example file
+for MySQL, `appfog-conf.js` is a configuration script for
+[AppFog](https://www.appfog.com/).
