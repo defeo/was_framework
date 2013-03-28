@@ -1,6 +1,6 @@
 {
   "name": "was_framework_demo",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "demo application for was_framework",
   "main": "app.js",
   "scripts" : {
