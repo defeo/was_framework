@@ -3,6 +3,9 @@
   "version": "0.2.0",
   "description": "demo application for was_framework",
   "main": "app.js",
+  "scripts" : {
+    "start": "node app.js --create-db"
+  },
   "author": "Luca De Feo <luca.de-feo@uvsq.fr> (http://www.prism.uvsq.fr/~dfl)",
   "license": "MIT",
   "dependencies": {
