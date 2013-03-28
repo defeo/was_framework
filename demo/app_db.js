@@ -63,9 +63,9 @@ exports.update = function(req, cb) {
     } else if (!req.query.value) {
 	cb(null, false, "Emtpy value");
     } else {
-	req.app.db.query('update users set ??=? where id=?', 
-			 [req.query.column, req.query.value, 
-			  req.session.loggedin.id],
+	// we do not want req.query.column to be escaped
+	req.app.db.query('update users set ' + req.query.column + '=? where id=?', 
+			 [req.query.value, req.session.loggedin.id],
 			 function(err) {
 			     if (err &&
 				 (err.code == 'ER_DUP_ENTRY' ||        //MySQL
@@ -85,18 +85,25 @@ exports.update = function(req, cb) {
 
 // This function is not for responding HTTP requests.
 // It creates the table
-exports.create = function(app) {
+exports.create = function(app, drop) {
     var create_query = app.get('db').type == 'mysql' ?
-	'create table users (id varchar(255) primary key, pwd varchar(255) not null, email varchar(255) not null unique, name varchar(255))' :
+	'create table users if not exists (id varchar(255) primary key, pwd varchar(255) not null, email varchar(255) not null unique, name varchar(255))' :
 	'create table users (id text not null primary key, pwd text not null, email text not null unique, name text)';
+    var drop_query = app.get('db').type == 'mysql' ?
+	'drop table users if exists' :
+	'drop table users';
 
-    app.db.query('drop table users', function(err) {
-	app.db.query(create_query, function(err) {
+    var create = function(err) {
+	if (err)
+	    console.error(err);
+	return app.db.query(create_query, function(err) {
 	    if (err)
 		console.error(err);
 	    else
 		console.log('Table created successfully.');
 	});
-    });
+    }
+    
+    return drop ? app.db.query(drop_query, create) : create();
 };
 
