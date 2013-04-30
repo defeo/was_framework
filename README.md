@@ -383,3 +383,46 @@ app.f_routes.select = function(req, res) {
   });
 }
 ```
+
+## Socket.io
+
+`was_framwork` has builtion support for [socket.io](http://socket.io/). To use it, simply pass the 
+option `socket_io`, and the socket object will be available at `app.io`.
+
+```javascript
+var fmwk = require('was_framework');
+
+var app = fmwk({
+    socket_io: true
+})
+
+app.f_routes.politesse = function(req, res) {
+    res.write('<script src="/socket.io/socket.io.js"></script>');
+    res.write('<script>');
+    res.write('  var socket = io.connect("http://localhost");');
+    res.write('  socket.on("merci", function (data) {');
+    res.write('    console.log(data);');
+    res.write('    socket.emit("de rien", { my: "Il n\'y a pas de quoi!" });');
+    res.write('  });');
+    res.write('</script>');
+    res.end();
+}
+
+app.io.sockets.on('connection', function(socket) {
+    socket.emit('merci', {greet: 'Merci beaucoup'});
+    socket.on('de rien', function(data) {
+        console.log(data);
+    });
+});
+
+app.start(12345)
+```
+
+Alternatively, the `http` server for the application is available at `app.http_server`. You can use it to create 
+the socket like this.
+
+```javascript
+var fmwk = require('was_framework');
+var app = fmwk();
+var io = require('socket.io').liste(app.http_server);
+```
