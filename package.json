@@ -1,6 +1,6 @@
 {
   "name": "was_framework",
-  "version": "0.9.4",
+  "version": "0.9.5",
   "description": "Micro framework used in the WAS course @UVersailles",
   "main": "lib/framework",
   "scripts": {
@@ -28,6 +28,7 @@
     "consolidate": ">=0.8.0",
     "hogan.js": "2.x",
     "mysql": "2.0.0-alpha7",
-    "node-sqlite-purejs" : "*"
+    "node-sqlite-purejs" : "*",
+    "socket.io": "1.0 || 0.9.x"
   }
 }
